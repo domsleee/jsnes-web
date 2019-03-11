@@ -7,6 +7,7 @@ export default class Speakers {
     this.bufferSize = 8192;
     this.buffer = new RingBuffer(this.bufferSize * 2);
     this.running = false;
+    this.audioStartTimeout = null;
   }
 
   start() {
@@ -18,7 +19,8 @@ export default class Speakers {
 
     if ("suspended" === this.audioCtx.status) {
       this.audioCtx.close();
-      return setTimeout(this.start.bind(this), 500);
+      this.audioStartTimeout = setTimeout(this.start.bind(this), 500);
+      return;
     }
     this.running = true;
 
@@ -28,6 +30,9 @@ export default class Speakers {
   }
 
   stop() {
+    if (this.audioStartTimeout) {
+      clearTimeout(this.audioStartTimeout);
+    }
     if (this.scriptNode) {
       this.scriptNode.disconnect(this.audioCtx.destination);
       this.scriptNode.onaudioprocess = null;
